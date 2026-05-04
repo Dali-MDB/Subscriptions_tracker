@@ -110,7 +110,7 @@ export async function cancelSubscription(req, res){
             'data':subscription,
         })
     }catch(error){
-        console.log(`an error occured when cancelling the subscription ${error.message}`)
+        console.log(`an error occured when cancelling the subscription ${error.message}`);
         throw new HttpError(500, "An error occurred while cancelling the subscription");
     }
 }
