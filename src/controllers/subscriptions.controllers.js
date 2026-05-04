@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 
 async function fetchSubscription(sub_id, user_id) {
+    try{
     if (!mongoose.Types.ObjectId.isValid(sub_id)) {
         throw new HttpError(400, "Invalid subscription id");
     }
@@ -18,29 +19,44 @@ async function fetchSubscription(sub_id, user_id) {
     }
 
     return subscription;
+    }catch(error){
+        console.log(`an error occured when fetching the subscription ${error.message}`)
+        throw new HttpError(500, "An error occurred while fetching the subscription");
+    }
 }
 
 
 export async function getAllSubscriptions(req,res){
+    try{
     const subscriptions = await Subscription.find()
     res.status(200).json({ success: true, data: subscriptions });
+    }catch(error){
+        console.log(`an error occured when fetching the subscriptions ${error.message}`)
+        throw new HttpError(500, "An error occurred while fetching the subscriptions");
+    }
 }
 
 export async function getSubscription(req, res){
     try {
         const subscription = await fetchSubscription(req.params.id, req.user._id);
         res.status(200).json({ success: true, data: subscription });
-    }catch(err) {
-        res.status(err.status || 500).json({ error: err.message });
+    }catch(error){
+        console.log(`an error occured when fetching the subscription ${error.message}`)
+        throw new HttpError(500, "An error occurred while fetching the subscription");
     }
 }
 
-export async function addSubscription(req, res){
+export async function addSubscription(req, res){   
+    try{
     let data = {...req.body}
     data['author'] = req.user._id;    //add the user
     const subscription = await Subscription(data);
     await subscription.save()
     return res.status(200).json({'success':true,'message':'the subscription has been registered successfully','data':subscription});
+    }catch(error){
+        console.log(`an error occured when adding the subscription ${error.message}`)
+        throw new HttpError(500, "An error occurred while adding the subscription");
+    }
 };
 
 
@@ -59,12 +75,11 @@ export async function editSubscription(req, res){
             'message': 'the subscription details have been updated successfully',
             'data':subscription,
         })
-    }catch(err) {
-        res.status(err.status || 500).json({ error: err.message });
+    }catch(error){
+        console.log(`an error occured when editing the subscription ${error.message}`)
+        throw new HttpError(500, "An error occurred while editing the subscription");
     }
 };
-
-
 
 export async function deleteSubscription(req, res){
     try {
@@ -72,7 +87,8 @@ export async function deleteSubscription(req, res){
         await Subscription.deleteOne({ _id: subscription._id });
         res.status(204).json({ message: "The subscription has been deleted successfully" });
     } catch (err) {
-        res.status(err.status || 500).json({ error: err.message });
+        console.log(`an error occured when deleting the subscription ${error.message}`)
+        throw new HttpError(500, "An error occurred while deleting the subscription");
     }
 };
 
@@ -93,18 +109,24 @@ export async function cancelSubscription(req, res){
             'message': 'the subscription has been cancelled successfully',
             'data':subscription,
         })
-    }catch(err) {
-        res.status(err.status || 500).json({ error: err.message });
+    }catch(error){
+        console.log(`an error occured when cancelling the subscription ${error.message}`)
+        throw new HttpError(500, "An error occurred while cancelling the subscription");
     }
 }
 
 
 export async function getUpcomingRenewals(req, res){
+    try{
     const subscriptions = await Subscription.find({
         author:req.user._id,
         status:'active',
         renewaldate: { $lt: new Date(), $gt: new Date(Date.now() - 7*24*60*60*1000) }
     })
     return res.status(200).json({'data':subscriptions})
+    }catch(error){
+        console.log(`an error occured when fetching the upcoming renewals ${error.message}`)
+        throw new HttpError(500, "An error occurred while fetching the upcoming renewals");
+    }
 };
 

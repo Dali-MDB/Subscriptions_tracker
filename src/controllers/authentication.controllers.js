@@ -19,6 +19,7 @@ const generate_token = (email,user_id)=>{
 }
 
 const authenticate = async (email,password)=>{
+    try{
     //we search the user
     let user = await User.findOne({'email':email}).select('+password')   //include the password
     if (!user)   
@@ -27,10 +28,15 @@ const authenticate = async (email,password)=>{
     if(! await bcrypt.compare(password,user.password))
         return false;
     return user;   //valid credentials
+    }catch(error){
+        console.log(`an error occured when authenticating the user ${error.message}`)
+        return false;
+    }
 
 }
   
 export async function Register(req, res, next){
+    try{
     let {name,email,password} = req.body;
 
     let user = await User.findOne({'email':email})
@@ -60,12 +66,20 @@ export async function Register(req, res, next){
             'access_token':access_token
         }
     })
+    }catch(error){
+        console.log(`an error occured when registering the user ${error.message}`)
+        return res.status(500).json({
+            'success':false,
+            'message':'an error occured when registering the user'
+        })
+    }
 }
 
 
 
 
 export async function Login(req,res,next) {
+    try{
     let {email,password} = req.body;
 
     //we authenticate the user
@@ -87,5 +101,11 @@ export async function Login(req,res,next) {
             'access_token':access_token
         }
     })
-    
+    }catch(error){
+        console.log(`an error occured when logging in the user ${error.message}`)
+        return res.status(500).json({
+            'success':false,
+            'message':'an error occured when logging in the user'
+        })
+    }
 }
